@@ -14,6 +14,6 @@
 <h1>Информация о специалисте:</h1>
     <p>Имя: ${doctor.fullName}</p>
     <p>Специализация: ${doctor.speciality}</p>
-<h1>Записаться к врачу</h1>
+<button type="submit"><a href = "${pageContext.request.contextPath}/appointment">Записаться к врачу</a></button>
 </body>
 </html>

@@ -1,4 +1,4 @@
 package services.exceptions;
 
-public class InvalidPasswordValue {
+public class InvalidPasswordValue extends RuntimeException {
 }

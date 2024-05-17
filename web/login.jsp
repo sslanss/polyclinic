@@ -12,6 +12,14 @@
 </head>
 <body>
 <h2>Для продолжения необходимо авторизоваться.</h2>
+<%
+    String errorMessage = (String) request.getAttribute("errorMessage");
+    if (errorMessage != null) {
+%>
+<%= errorMessage %>
+<%
+    }
+%><p></p>
 <form action="login" method="post">
     <label for="insurancePolicyNumber">Номер страхового полиса (ОМС):</label>
     <input type="text" id="insurancePolicyNumber" name="policyNumber" required><br><br>

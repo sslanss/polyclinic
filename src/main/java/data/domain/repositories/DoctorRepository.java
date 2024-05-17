@@ -4,7 +4,6 @@ import data.database.ConnectionFactory;
 import data.domain.ClassMappingException;
 import data.domain.mappers.DoctorMapper;
 import data.domain.models.Doctor;
-import lombok.Getter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import lombok.Getter;
 
 public class DoctorRepository {
     @Getter
