@@ -4,13 +4,13 @@ import data.domain.models.Patient;
 import data.dto.PatientProfileDto;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@AllArgsConstructor
+@Getter
 public class PatientMapper {
     private final GenderMapper genderMapper;
-
-    public PatientMapper(GenderMapper genderMapper) {
-        this.genderMapper = genderMapper;
-    }
 
     public Patient mapPatientFromDatabase(ResultSet resultSet) throws SQLException {
         return new Patient(

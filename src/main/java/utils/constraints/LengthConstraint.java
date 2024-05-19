@@ -2,7 +2,7 @@ package utils.constraints;
 
 public class LengthConstraint implements AbstractConstraint<String> {
 
-    protected final long length;
+    private final long length;
 
     public LengthConstraint(long lengthValue) {
         this.length = lengthValue;

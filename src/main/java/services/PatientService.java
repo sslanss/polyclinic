@@ -4,44 +4,66 @@ import data.domain.models.Patient;
 import data.domain.repositories.AppointmentRepository;
 import data.domain.repositories.PatientRepository;
 import data.domain.repositories.exceptions.DataRepositoryException;
+import data.dto.ErrorFieldsDto;
 import data.dto.PatientProfileDto;
-import utils.password.PasswordHasher;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import services.exceptions.InvalidFieldsException;
 import services.exceptions.InvalidPasswordValue;
 import services.exceptions.PatientHaveAlreadyRegistered;
 import services.exceptions.PatientHaveNotRegisteredYet;
-
-import java.util.Optional;
+import utils.password.PasswordHasher;
+import utils.validation.validators.ErrorField;
+import utils.validation.validators.model_validators.PatientValidator;
 
 public class PatientService {
     private final PatientRepository patientRepository;
     private final PasswordHasher passwordHasher;
+
+    private final PatientValidator patientValidator;
     private final AppointmentRepository appointmentRepository;
 
-    public PatientService(PatientRepository patientRepository, PasswordHasher passwordHasher, AppointmentRepository appointmentRepository) {
+    public PatientService(PatientRepository patientRepository, PasswordHasher passwordHasher,
+                          PatientValidator patientValidator, AppointmentRepository appointmentRepository) {
         this.patientRepository = patientRepository;
         this.passwordHasher = passwordHasher;
+        this.patientValidator = patientValidator;
         this.appointmentRepository = appointmentRepository;
     }
 
-    public void registerPatient(String insurancePolicyNumber, String fullName, String dateOfBirth,
-                                String gender, String phoneNumber, String address, String password)
+    public PatientProfileDto registerPatient(String insurancePolicyNumber, String fullName, String dateOfBirth,
+                                             String gender, String phoneNumber, String address, String password)
             throws DataRepositoryException {
-        Optional<Patient> patient = patientRepository.findByPolicyNumber(insurancePolicyNumber);
-        if (patient.isPresent()) {
-            if (isPatientAnUser(patient.get())) {
+        Optional<Patient> findingPatient = patientRepository.findByPolicyNumber(insurancePolicyNumber);
+
+        if (findingPatient.isPresent()) {
+            Patient onsiteVisitedPatient = findingPatient.get();
+            if (isPatientAnUser(onsiteVisitedPatient)) {
                 throw new PatientHaveAlreadyRegistered();
             }
-            patientRepository.updatePassword(insurancePolicyNumber, password);
-        } else {
-            //PatientValidator.validate(patient)
-           // Patient registeringPatient = new Patient(insurancePolicyNumber,fullName,LocalDate.parse(dateOfBirth),
-            //patientRepository.getMapper().
-            //patientRepository.add()
-        }
 
+            patientRepository.updatePassword(insurancePolicyNumber, password);
+            return patientRepository.getPatientMapper().mapPatientToPatientProfileDto(onsiteVisitedPatient);
+        } else {
+            Patient registeringPatient = new Patient(insurancePolicyNumber, fullName, LocalDate.parse(dateOfBirth),
+                    patientRepository.getPatientMapper().getGenderMapper().mapGenderFromUserForm(gender),
+                    phoneNumber, address, password);
+
+            List<ErrorField> errors = patientValidator.validate(registeringPatient);
+            if (!errors.isEmpty()) {
+                throw new InvalidFieldsException(new ErrorFieldsDto(errors));
+            }
+
+            registeringPatient.setPassword(passwordHasher.hash(password));
+            patientRepository.add(registeringPatient);
+
+            return patientRepository.getPatientMapper().mapPatientToPatientProfileDto(registeringPatient);
+        }
     }
 
-    public PatientProfileDto loginPatient(String insurancePolicyNumber, String password) throws DataRepositoryException {
+    public PatientProfileDto loginPatient(String insurancePolicyNumber, String password)
+            throws DataRepositoryException {
         //try {
         Patient patient = patientRepository.findByPolicyNumber(insurancePolicyNumber)
                 .orElseThrow(PatientHaveNotRegisteredYet::new);
@@ -50,10 +72,10 @@ public class PatientService {
             throw new PatientHaveNotRegisteredYet();
         }
 
-        String encryptedPassword = passwordHasher.encryptPassword(password);
-        patient = patientRepository.findByPassword(encryptedPassword).orElseThrow(InvalidPasswordValue::new);
+        patient = patientRepository.findByPolicyNumberAndPassword(insurancePolicyNumber,
+                passwordHasher.hash(password)).orElseThrow(InvalidPasswordValue::new);
 
-        return patientRepository.getMapper().mapPatientToPatientProfileDto(patient);
+        return patientRepository.getPatientMapper().mapPatientToPatientProfileDto(patient);
         //}
     }
 

@@ -17,6 +17,7 @@ import services.PatientService;
 import services.exceptions.InvalidPasswordValue;
 import services.exceptions.PatientHaveNotRegisteredYet;
 import utils.password.PasswordHasher;
+import utils.validation.validators.model_validators.PatientValidator;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
@@ -25,7 +26,7 @@ public class LoginServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         patientService = new PatientService(new PatientRepository(new PatientMapper(new GenderMapper())),
-                new PasswordHasher(), new AppointmentRepository());
+                new PasswordHasher(), new PatientValidator(), new AppointmentRepository());
     }
 
     @Override
@@ -42,21 +43,21 @@ public class LoginServlet extends HttpServlet {
         try {
             PatientProfileDto patientProfile = patientService.loginPatient(insurancePolicyNumber, password);
             req.getSession().setAttribute("patient", patientProfile);
-            forwardToPageWithAttribute(req, resp, "patient_profile.jsp", "patient", patientProfile);
+            forwardToPageWithAnAttribute(req, resp, "patient_profile.jsp", "patient", patientProfile);
         } catch (DataRepositoryException e) {
             RequestDispatcher dispatcher = req.getRequestDispatcher("server_error.jsp");
             dispatcher.forward(req, resp);
         } catch (PatientHaveNotRegisteredYet e) {
-            forwardToPageWithAttribute(req, resp, "registration.jsp", "errorMessage",
+            forwardToPageWithAnAttribute(req, resp, "registration.jsp", "errorMessage",
                     "Вы еще не зарегистрированы. Пожалуйста, зарегистрируйтесь.");
         } catch (InvalidPasswordValue e) {
-            forwardToPageWithAttribute(req, resp, "login.jsp", "errorMessage",
+            forwardToPageWithAnAttribute(req, resp, "login.jsp", "errorMessage",
                     "Пароль неверный! Попробуйте еще раз.");
         }
     }
 
-    private void forwardToPageWithAttribute(HttpServletRequest req, HttpServletResponse resp,
-                                            String page, String attributeName, Object attribute)
+    private void forwardToPageWithAnAttribute(HttpServletRequest req, HttpServletResponse resp,
+                                              String page, String attributeName, Object attribute)
             throws ServletException, IOException {
         if (attribute != null) {
             req.setAttribute(attributeName, attribute);

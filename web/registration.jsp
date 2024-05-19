@@ -1,4 +1,5 @@
-<%--
+<%@ page import="utils.validation.validators.ErrorField" %>
+<%@ page import="data.dto.ErrorFieldsDto" %><%--
   Created by IntelliJ IDEA.
   User: sidel
   Date: 15.05.2024
@@ -12,14 +13,25 @@
 </head>
 <body>
 <h2>Регистрация</h2>
+
 <%
     String errorMessage = (String) request.getAttribute("errorMessage");
     if (errorMessage != null) {
 %>
-<%= errorMessage %>
+<p><%= errorMessage %></p>
 <%
+    ErrorFieldsDto errorFields = (ErrorFieldsDto) request.getAttribute("errorFields");
+
+    if (errorFields != null && !errorFields.errorFields().isEmpty()) {
+        for (ErrorField field : errorFields.errorFields()) {
+%>
+<p><%= field.fieldName() %>: <%= field.errorMessage() %></p>
+<%
+            }
+        }
     }
 %>
+
 <form action="registration" method="post">
     <div>
         <label for="insurancePolicyNumber">Номер страхового полиса (ОМС):</label>
@@ -35,7 +47,7 @@
         <select id="gender" name="gender">
             <option value="male">Мужской</option>
             <option value="female">Женский</option>
-            <option value="none"selected>Не выбран</option>
+            <option value="none" selected>Не выбран</option>
         </select><br><br>
 
         <label for="phoneNumber">Номер телефона:</label>

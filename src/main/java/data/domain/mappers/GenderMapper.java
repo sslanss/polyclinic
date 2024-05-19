@@ -1,8 +1,6 @@
 package data.domain.mappers;
 
-import data.domain.ClassMappingException;
 import data.domain.models.dictionaries.Gender;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -12,12 +10,17 @@ public class GenderMapper {
         return Gender.valueOf(genderString.toUpperCase());
     }
 
-    public void mapGenderToDatabase(int parameterIndex, Gender gender, PreparedStatement preparedStatement) {
-        try {
-            preparedStatement.setString(parameterIndex, String.valueOf(gender).toLowerCase());
-
-        } catch (SQLException e) {
-            throw new ClassMappingException();
+    public Gender mapGenderFromUserForm(String gender) {
+        switch (gender) {
+            case "male" -> {
+                return Gender.MALE;
+            }
+            case "female" -> {
+                return Gender.FEMALE;
+            }
+            default -> {
+                return null;
+            }
         }
     }
 }

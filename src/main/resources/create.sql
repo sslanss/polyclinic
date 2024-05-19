@@ -28,15 +28,21 @@ CREATE TABLE patients (
 CREATE TYPE appointment_type AS ENUM ('scheduled', 'emergency');
 
 CREATE TABLE appointments (
-                              appointment_id SERIAL PRIMARY KEY,
-                              doctor_id INT,
-                              patient_id VARCHAR(16),
-                              date_time TIMESTAMP WITH TIME ZONE NOT NULL,
+                              appointment_id INT PRIMARY KEY,
                               recommendations TEXT NOT NULL,
-                              appointment_type appointment_type,
 
-                              FOREIGN KEY (doctor_id) REFERENCES doctors (doctor_id) ON DELETE CASCADE,
-                              FOREIGN KEY (patient_id) REFERENCES patients (insurance_policy_number) ON DELETE CASCADE
+                              FOREIGN KEY (appointment_id) REFERENCES records (record_id) ON DELETE CASCADE
+);
+
+CREATE TABLE patient_records (
+                         record_id SERIAL PRIMARY KEY,
+                         doctor_id INT,
+                         patient_id VARCHAR(16),
+                         date_time TIMESTAMP WITH TIME ZONE NOT NULL,
+                         appointment_type appointment_type,
+
+                         FOREIGN KEY (doctor_id) REFERENCES doctors (doctor_id) ON DELETE CASCADE,
+                         FOREIGN KEY (patient_id) REFERENCES patients (insurance_policy_number) ON DELETE CASCADE
 );
 
 CREATE TABLE diagnoses (
