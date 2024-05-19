@@ -49,8 +49,9 @@ public class RegistrationServlet extends HttpServlet {
                     dateOfBirth, gender, phoneNumber, address,
                     password);
             req.getSession().setAttribute("patient", patientProfile);
-            RequestDispatcher dispatcher = req.getRequestDispatcher("welcome_page.jsp");
+            RequestDispatcher dispatcher = req.getRequestDispatcher("welcome_page_polyclinic.jsp");
             dispatcher.forward(req, resp);
+            //resp.sendRedirect(req.getContextPath() + "/");
         } catch (DataRepositoryException e) {
             RequestDispatcher dispatcher = req.getRequestDispatcher("server_error.jsp");
             dispatcher.forward(req, resp);

@@ -7,7 +7,11 @@ import java.sql.SQLException;
 public class GenderMapper {
     public Gender mapGenderFromDatabase(ResultSet resultSet) throws SQLException {
         String genderString = resultSet.getString("gender");
-        return Gender.valueOf(genderString.toUpperCase());
+        try {
+            return Gender.valueOf(genderString.toUpperCase());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return null;
+        }
     }
 
     public Gender mapGenderFromUserForm(String gender) {

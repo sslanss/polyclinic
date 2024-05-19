@@ -1,7 +1,6 @@
 package data.domain.repositories;
 
 import data.database.ConnectionFactory;
-import data.domain.ClassMappingException;
 import data.domain.mappers.DoctorMapper;
 import data.domain.models.Doctor;
 import data.domain.repositories.exceptions.DataRepositoryException;
@@ -96,7 +95,7 @@ public class DoctorRepository {
 
                 preparedStatement.setString(4, doctor.getPhoneNumber());
             } catch (SQLException e) {
-                throw new ClassMappingException();
+                throw new DataRepositoryException();
             }
 
             return preparedStatement.executeUpdate() == 1;

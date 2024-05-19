@@ -3,6 +3,8 @@ package data.domain.repositories;
 import data.database.ConnectionFactory;
 import data.domain.mappers.SpecialityMapper;
 import data.domain.models.dictionaries.Speciality;
+import data.domain.repositories.exceptions.DataRepositoryException;
+import lombok.Getter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,12 +12,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import lombok.Getter;
 
 public class SpecialityRepository {
     @Getter
     private final SpecialityMapper mapper;
-    private static final Connection CONNECTION;
+    private final Connection connection;
     private static final String FIND_ALL_TEMPLATE = """
             SELECT speciality_id, speciality_name
             FROM specialities
@@ -45,29 +46,28 @@ public class SpecialityRepository {
             WHERE speciality_id = ?
             """;
 
-    static {
-        CONNECTION = ConnectionFactory.getConnection();
-    }
-
     public SpecialityRepository(SpecialityMapper mapper) {
         this.mapper = mapper;
+        connection = ConnectionFactory.getConnection();
     }
 
-    public List<Speciality> findAll() throws SQLException {
+    public List<Speciality> findAll() throws DataRepositoryException {
         List<Speciality> specialities = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = CONNECTION.prepareStatement(FIND_ALL_TEMPLATE)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_TEMPLATE)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
                 specialities.add(mapper.mapSpecialityFromDatabase(resultSet));
             }
+        } catch (SQLException e) {
+            throw new DataRepositoryException();
         }
         return specialities;
     }
 
-    public Optional<Speciality> findByName(Integer id) throws SQLException {
-        try (PreparedStatement preparedStatement = CONNECTION.prepareStatement(FIND_BY_NAME_TEMPLATE)) {
+    public Optional<Speciality> findByName(Integer id) throws DataRepositoryException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_NAME_TEMPLATE)) {
             preparedStatement.setInt(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -76,11 +76,13 @@ public class SpecialityRepository {
             } else {
                 return Optional.empty();
             }
+        } catch (SQLException e) {
+            throw new DataRepositoryException();
         }
     }
 
-    public Optional<Speciality> findById(Integer id) throws SQLException {
-        try (PreparedStatement preparedStatement = CONNECTION.prepareStatement(FIND_BY_ID_TEMPLATE)) {
+    public Optional<Speciality> findById(Integer id) throws DataRepositoryException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID_TEMPLATE)) {
             preparedStatement.setInt(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -89,31 +91,39 @@ public class SpecialityRepository {
             } else {
                 return Optional.empty();
             }
+        } catch (SQLException e) {
+            throw new DataRepositoryException();
         }
     }
 
-    public boolean add(Speciality speciality) throws SQLException {
-        try (PreparedStatement preparedStatement = CONNECTION.prepareStatement(ADD_TEMPLATE)) {
+    public boolean add(Speciality speciality) throws DataRepositoryException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(ADD_TEMPLATE)) {
             preparedStatement.setString(1, speciality.getSpecialityName());
 
             return preparedStatement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new DataRepositoryException();
         }
     }
 
-    public boolean update(Integer id, Speciality speciality) throws SQLException {
-        try (PreparedStatement preparedStatement = CONNECTION.prepareStatement(UPDATE_TEMPLATE)) {
+    public boolean update(Integer id, Speciality speciality) throws DataRepositoryException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_TEMPLATE)) {
             preparedStatement.setString(1, speciality.getSpecialityName());
             preparedStatement.setInt(2, id);
 
             return preparedStatement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new DataRepositoryException();
         }
     }
 
-    public boolean delete(Integer id) throws SQLException {
-        try (PreparedStatement preparedStatement = CONNECTION.prepareStatement(DELETE_TEMPLATE)) {
+    public boolean delete(Integer id) throws DataRepositoryException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(DELETE_TEMPLATE)) {
             preparedStatement.setInt(1, id);
 
             return preparedStatement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new DataRepositoryException();
         }
     }
 }

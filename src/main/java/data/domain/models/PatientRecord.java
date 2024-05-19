@@ -1,7 +1,7 @@
 package data.domain.models;
 
 import data.domain.models.dictionaries.AppointmentType;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,6 +13,15 @@ public class PatientRecord {
     private Integer recordId;
     private Integer doctorId;
     private String patientId;
-    private OffsetDateTime dateTime;
+    private LocalDateTime dateTime;
     private AppointmentType appointmentType;
+
+    public PatientRecord(Integer doctorId, String patientId, LocalDateTime dateTime,
+                         AppointmentType appointmentType) {
+        this.doctorId = doctorId;
+        this.patientId = patientId;
+        this.dateTime = dateTime;
+        this.appointmentType = appointmentType;
+    }
+
 }

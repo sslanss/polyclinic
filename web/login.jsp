@@ -22,7 +22,7 @@
 %><p></p>
 <form action="login" method="post">
     <label for="insurancePolicyNumber">Номер страхового полиса (ОМС):</label>
-    <input type="text" id="insurancePolicyNumber" name="policyNumber" required><br><br>
+    <input type="text" id="insurancePolicyNumber" name="insurancePolicyNumber" required><br><br>
 
     <label for="password">Пароль:</label>
     <input type="password" id="password" name="password" required><br><br>

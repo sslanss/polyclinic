@@ -20,7 +20,6 @@ import utils.validation.validators.model_validators.PatientValidator;
 public class PatientService {
     private final PatientRepository patientRepository;
     private final PasswordHasher passwordHasher;
-
     private final PatientValidator patientValidator;
     private final AppointmentRepository appointmentRepository;
 
@@ -64,7 +63,6 @@ public class PatientService {
 
     public PatientProfileDto loginPatient(String insurancePolicyNumber, String password)
             throws DataRepositoryException {
-        //try {
         Patient patient = patientRepository.findByPolicyNumber(insurancePolicyNumber)
                 .orElseThrow(PatientHaveNotRegisteredYet::new);
 
@@ -72,11 +70,11 @@ public class PatientService {
             throw new PatientHaveNotRegisteredYet();
         }
 
-        patient = patientRepository.findByPolicyNumberAndPassword(insurancePolicyNumber,
-                passwordHasher.hash(password)).orElseThrow(InvalidPasswordValue::new);
+        if (!passwordHasher.check(password, patient.getPassword())) {
+            throw new InvalidPasswordValue();
+        }
 
         return patientRepository.getPatientMapper().mapPatientToPatientProfileDto(patient);
-        //}
     }
 
     private boolean isPatientAnUser(Patient patient) {
