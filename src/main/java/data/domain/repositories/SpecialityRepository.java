@@ -4,7 +4,6 @@ import data.database.ConnectionFactory;
 import data.domain.mappers.SpecialityMapper;
 import data.domain.models.dictionaries.Speciality;
 import data.domain.repositories.exceptions.DataRepositoryException;
-import lombok.Getter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import lombok.Getter;
 
 public class SpecialityRepository {
     @Getter
@@ -20,11 +20,6 @@ public class SpecialityRepository {
     private static final String FIND_ALL_TEMPLATE = """
             SELECT speciality_id, speciality_name
             FROM specialities
-            """;
-    private static final String FIND_BY_NAME_TEMPLATE = """
-            SELECT speciality_id, speciality_name
-            FROM specialities
-            WHERE speciality_name = ?
             """;
 
     private static final String FIND_BY_ID_TEMPLATE = """
@@ -64,21 +59,6 @@ public class SpecialityRepository {
             throw new DataRepositoryException();
         }
         return specialities;
-    }
-
-    public Optional<Speciality> findByName(Integer id) throws DataRepositoryException {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_NAME_TEMPLATE)) {
-            preparedStatement.setInt(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.next()) {
-                return Optional.of(mapper.mapSpecialityFromDatabase(resultSet));
-            } else {
-                return Optional.empty();
-            }
-        } catch (SQLException e) {
-            throw new DataRepositoryException();
-        }
     }
 
     public Optional<Speciality> findById(Integer id) throws DataRepositoryException {

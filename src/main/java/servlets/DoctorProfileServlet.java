@@ -9,7 +9,7 @@ import data.domain.repositories.DoctorRepository;
 import data.domain.repositories.PatientRecordRepository;
 import data.domain.repositories.SpecialityRepository;
 import data.domain.repositories.exceptions.DataRepositoryException;
-import data.dto.DoctorFreeTimeForRecordDto;
+import data.dto.DoctorAvailableTimeDto;
 import data.dto.DoctorProfileDto;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
@@ -20,18 +20,21 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
-import services.DoctorsService;
+import services.DoctorService;
 import services.PatientRecordService;
+import services.exceptions.DoctorUnavailableException;
 
 @WebServlet("/doctor")
 public class DoctorProfileServlet extends HttpServlet {
-    private DoctorsService doctorsService;
+    private DoctorService doctorService;
 
     private PatientRecordService patientRecordService;
 
+    private static final int WEEKS_COUNT_FOR_RECORD = 2;
+
     @Override
     public void init() throws ServletException {
-        doctorsService = new DoctorsService(new DoctorRepository(new DoctorMapper(new GenderMapper())),
+        doctorService = new DoctorService(new DoctorRepository(new DoctorMapper(new GenderMapper())),
                 new SpecialityRepository(new SpecialityMapper()));
         patientRecordService = new PatientRecordService(
                 new PatientRecordRepository(new PatientRecordMapper(new AppointmentTypeMapper())),
@@ -43,23 +46,21 @@ public class DoctorProfileServlet extends HttpServlet {
         Integer doctorId = Integer.valueOf(req.getParameter("id"));
 
         try {
-            DoctorProfileDto doctor = doctorsService.getById(doctorId);
-            if (doctor == null) {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            }
+            DoctorProfileDto doctor = doctorService.getById(doctorId);
             req.setAttribute("doctor", doctor);
 
             LocalDateTime currentDate = LocalDateTime.now();
-            List<DoctorFreeTimeForRecordDto> doctorBusyTimeForTimestamp = patientRecordService
+            List<DoctorAvailableTimeDto> doctorBusyTimeForTimestamp = patientRecordService
                     .getDoctorFreeTimeForInterval(doctorId, currentDate,
-                            currentDate.plusWeeks(2));
-            req.setAttribute("freeTime", doctorBusyTimeForTimestamp);
+                            currentDate.plusWeeks(WEEKS_COUNT_FOR_RECORD));
 
+            req.setAttribute("freeTime", doctorBusyTimeForTimestamp);
             RequestDispatcher dispatcher = req.getRequestDispatcher("/doctor_profile.jsp");
             dispatcher.forward(req, resp);
+        } catch (DoctorUnavailableException e) {
+            resp.sendRedirect(req.getContextPath() + "/doctors");
         } catch (DataRepositoryException e) {
-            RequestDispatcher dispatcher = req.getRequestDispatcher("server_error.jsp");
-            dispatcher.forward(req, resp);
+            resp.sendRedirect(req.getContextPath() + "/server_error");
         }
     }
 }

@@ -6,7 +6,7 @@
   To change this template use File | Settings | File Templates.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="data.dto.AddedPatientRecordDto" %>
+<%@ page import="data.dto.PatientRecordResultDto" %>
 <html>
 <head>
     <title>Запись</title>
@@ -23,8 +23,9 @@
             border-radius: 10px;
             background-color: #f9f9f9;
         }
-        h1 {
+        h2 {
             color: #4CAF50;
+            font-weight: normal;
         }
         p {
             font-size: 16px;
@@ -35,14 +36,13 @@
         }
         .message {
             margin-top: 20px;
-            font-style: italic;
         }
     </style>
 </head>
 <body>
 <div class="container">
     <%
-        AddedPatientRecordDto record = (AddedPatientRecordDto) request.getAttribute("patientRecord");
+        PatientRecordResultDto record = (PatientRecordResultDto) request.getAttribute("patientRecord");
 
         if (record != null) {
     %>
@@ -50,7 +50,8 @@
     <p class="doctor-info">Вас примет: <%= record.doctorFullName()%></p>
     <p class="doctor-info">Дата приема: <%= record.dateTime().toLocalDate() %></p>
     <p class="doctor-info">Время приема: <%= record.dateTime().toLocalTime() %></p>
-    <p class="message">Пожалуйста, не задерживайтесь. Если не успеваете, отмените запись в личном кабинете.</p>
+    <p class="message">Пожалуйста, не задерживайтесь. Если не успеваете, отмените запись в
+        <a href="<%= request.getContextPath() %>/patient_profile">личном кабинете.</a></p>
     <%
     } else {
     %>
@@ -61,3 +62,4 @@
 </div>
 </body>
 </html>
+

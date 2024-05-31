@@ -7,11 +7,29 @@
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.time.format.DateTimeFormatter, java.util.*" %>
-<%@ page import="data.dto.DoctorFreeTimeForRecordDto" %>
+<%@ page import="data.dto.DoctorAvailableTimeDto" %>
 <html>
 <head>
     <title>Профиль</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #4CAF50;
+        }
+        .doctor-info {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .doctor-info p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -28,37 +46,21 @@
         .available {
             background-color: #dff0d8;
         }
-        .button {
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        .button a {
-            color: white;
-            text-decoration: none;
-        }
     </style>
 </head>
 <body>
 <%
     DoctorProfileDto doctor = (DoctorProfileDto) request.getAttribute("doctor");
-    List<DoctorFreeTimeForRecordDto> freeTimeSlots = (List<DoctorFreeTimeForRecordDto>) request.getAttribute("freeTime");
+    List<DoctorAvailableTimeDto> freeTimeSlots = (List<DoctorAvailableTimeDto>) request.getAttribute("freeTime");
 
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 %>
-<h1>Информация о специалисте:</h1>
-<p>Имя: <%= doctor.getFullName() %></p>
-<p>Специализация: <%= doctor.getSpeciality() %></p>
-<button class="button"><a href="<%= request.getContextPath() %>/record?doctorId=<%= doctor.getDoctorId() %>">Записаться к врачу</a></button>
+<h1>Информация о специалисте</h1>
+<div class="doctor-info">
+    <p><strong>Имя:</strong> <%= doctor.fullName() %></p>
+    <p><strong>Специализация:</strong> <%= doctor.speciality() %></p>
+</div>
 
 <h2>Доступное расписание</h2>
 <table>
@@ -70,17 +72,14 @@
     </thead>
     <tbody>
     <%
-        for (DoctorFreeTimeForRecordDto freeTimeSlot : freeTimeSlots) {
+        for (DoctorAvailableTimeDto freeTimeSlot : freeTimeSlots) {
             String date = freeTimeSlot.freeDateTime().format(dateFormatter);
             String time = freeTimeSlot.freeDateTime().format(timeFormatter);
-            String dateTimeParam = freeTimeSlot.freeDateTime().format(DateTimeFormatter
-                    .ofPattern("yyyy-MM-dd'T'HH:mm"));
+            String dateTimeParam = freeTimeSlot.freeDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
     %>
     <tr class="available">
-        <td><a href="<%= request.getContextPath() %>/record?doctorId=<%= doctor.getDoctorId() %>&dateTime=<%=
-        dateTimeParam %>"><%= date %></a></td>
-        <td><a href="<%= request.getContextPath() %>/record?doctorId=<%= doctor.getDoctorId() %>&dateTime=<%=
-        dateTimeParam %>"><%= time %></a></td>
+        <td><a href="<%= request.getContextPath() %>/record?doctorId=<%= doctor.doctorId() %>&dateTime=<%= dateTimeParam %>"><%= date %></a></td>
+        <td><a href="<%= request.getContextPath() %>/record?doctorId=<%= doctor.doctorId() %>&dateTime=<%= dateTimeParam %>"><%= time %></a></td>
     </tr>
     <% } %>
     </tbody>

@@ -2,7 +2,6 @@ package servlets.user;
 
 import data.domain.mappers.GenderMapper;
 import data.domain.mappers.PatientMapper;
-import data.domain.repositories.AppointmentRepository;
 import data.domain.repositories.PatientRepository;
 import data.domain.repositories.exceptions.DataRepositoryException;
 import data.dto.PatientProfileDto;
@@ -25,7 +24,7 @@ public class RegistrationServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         patientService = new PatientService(new PatientRepository(new PatientMapper(new GenderMapper())),
-                new PasswordHasher(), new PatientValidator(), new AppointmentRepository());
+                new PasswordHasher(), new PatientValidator());
     }
 
     @Override
@@ -49,12 +48,10 @@ public class RegistrationServlet extends HttpServlet {
                     dateOfBirth, gender, phoneNumber, address,
                     password);
             req.getSession().setAttribute("patient", patientProfile);
-            RequestDispatcher dispatcher = req.getRequestDispatcher("welcome_page_polyclinic.jsp");
+            RequestDispatcher dispatcher = req.getRequestDispatcher("successful_authorization.jsp");
             dispatcher.forward(req, resp);
-            //resp.sendRedirect(req.getContextPath() + "/");
         } catch (DataRepositoryException e) {
-            RequestDispatcher dispatcher = req.getRequestDispatcher("server_error.jsp");
-            dispatcher.forward(req, resp);
+            resp.sendRedirect(req.getContextPath() + "/server_error");
         } catch (InvalidFieldsException e) {
             req.setAttribute("errorMessage", "Вы допустили ошибки в заполнении формы. "
                   +  "Пожалуйста, заполните информацию верно.");

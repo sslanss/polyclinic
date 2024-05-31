@@ -1,13 +1,17 @@
 package services;
 
+import data.domain.mappers.PatientRecordMapper;
 import data.domain.models.Doctor;
 import data.domain.models.PatientRecord;
 import data.domain.models.dictionaries.AppointmentType;
 import data.domain.repositories.DoctorRepository;
 import data.domain.repositories.PatientRecordRepository;
-import data.dto.AddedPatientRecordDto;
-import data.dto.DoctorFreeTimeForRecordDto;
-import data.dto.RemovedPatientRecordDto;
+import data.domain.repositories.exceptions.DataRepositoryException;
+import data.dto.DoctorAvailableTimeDto;
+import data.dto.PatientAppointmentListItemDto;
+import data.dto.PatientRecordResultDto;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -18,34 +22,35 @@ import services.exceptions.UnavailableRecordTimeException;
 public class PatientRecordService {
     private final PatientRecordRepository patientRecordRepository;
     private final DoctorRepository doctorRepository;
-
     private static final LocalTime FIRST_DAY_TIME_FOR_RECORDING = LocalTime.of(8, 0, 0);
     private static final LocalTime LAST_DAY_TIME_FOR_RECORDING = LocalTime.of(20, 0, 0);
+    private static final int SESSION_TIME_IN_MINUTES = 30;
 
     public PatientRecordService(PatientRecordRepository patientRecordRepository, DoctorRepository doctorRepository) {
         this.patientRecordRepository = patientRecordRepository;
         this.doctorRepository = doctorRepository;
     }
 
-    public List<DoctorFreeTimeForRecordDto> getDoctorFreeTimeForInterval(Integer doctorId, LocalDateTime sinceDate,
-                                                                         LocalDateTime untilDate) {
+    public List<DoctorAvailableTimeDto> getDoctorFreeTimeForInterval(Integer doctorId, LocalDateTime sinceDate,
+                                                                     LocalDateTime untilDate)
+            throws DataRepositoryException {
         List<PatientRecord> busyRecordsByTimestamp = patientRecordRepository.findAllByDoctorIdAndTimeInterval(
                 doctorId, sinceDate, untilDate);
         List<LocalDateTime> busyDateTimes = busyRecordsByTimestamp.stream()
                 .map(PatientRecord::getDateTime)
                 .toList();
 
-        LocalDateTime firstAvailableTime = getNextAvailableTime(sinceDate);
-        LocalDateTime lastAvailableTime = getNextAvailableTime(untilDate);
+        LocalDateTime firstAvailableTime = getNextAvailableDateTime(sinceDate);
+        LocalDateTime lastAvailableTime = getNextAvailableDateTime(untilDate);
 
-        List<DoctorFreeTimeForRecordDto> freeRecordsByTimestamp = new ArrayList<>();
+        List<DoctorAvailableTimeDto> freeRecordsByTimestamp = new ArrayList<>();
         while (firstAvailableTime.isBefore(lastAvailableTime)) {
 
             if (!busyDateTimes.contains(firstAvailableTime)) {
-                freeRecordsByTimestamp.add(new DoctorFreeTimeForRecordDto(firstAvailableTime));
+                freeRecordsByTimestamp.add(new DoctorAvailableTimeDto(firstAvailableTime));
             }
             if (firstAvailableTime.toLocalTime().isBefore(LAST_DAY_TIME_FOR_RECORDING)) {
-                firstAvailableTime = firstAvailableTime.plusMinutes(30);
+                firstAvailableTime = firstAvailableTime.plusMinutes(SESSION_TIME_IN_MINUTES);
             } else {
                 firstAvailableTime = LocalDateTime.of(firstAvailableTime.toLocalDate().plusDays(1),
                         FIRST_DAY_TIME_FOR_RECORDING);
@@ -54,9 +59,10 @@ public class PatientRecordService {
         return freeRecordsByTimestamp;
     }
 
-    public AddedPatientRecordDto makePatientRecordToTheDoctor(Integer doctorId, String patientId,
-                                                              LocalDateTime appointmentDateTime) {
-        PatientRecord recordingPatient = new PatientRecord(doctorId, patientId, appointmentDateTime,
+    public PatientRecordResultDto makePatientRecordToTheDoctor(Integer doctorId, String patientId,
+                                                               LocalDateTime appointmentDateTime)
+            throws DataRepositoryException {
+        PatientRecord addingRecording = new PatientRecord(doctorId, patientId, appointmentDateTime,
                 AppointmentType.SCHEDULED);
 
         Optional<PatientRecord> existedPatientRecord = patientRecordRepository.findByDoctorIdAndDateTime(doctorId,
@@ -65,30 +71,56 @@ public class PatientRecordService {
             throw new UnavailableRecordTimeException();
         }
 
-        patientRecordRepository.add(recordingPatient);
+        Doctor doctorForRecord = doctorRepository.findById(doctorId).orElseThrow(UnavailableRecordTimeException::new);
+        patientRecordRepository.add(addingRecording);
+
+        return patientRecordRepository.getPatientRecordMapper()
+                .mapPatientRecordToPatientRecordResultDto(addingRecording, doctorForRecord.getFullName());
+    }
+
+    public List<PatientAppointmentListItemDto> getAllPatientRecords(String patientId, LocalDateTime sinceDate)
+            throws DataRepositoryException {
+        List<PatientRecord> patientRecords = patientRecordRepository.findAllByPatientIdAndTimeInterval(patientId,
+                sinceDate);
+
+        PatientRecordMapper mapper = patientRecordRepository.getPatientRecordMapper();
+        return patientRecords.stream()
+                .map((mapper::mapPatientRecordToPatientAppointmentListItemDto))
+                .toList();
+    }
+
+    public PatientRecordResultDto removePatientRecordToTheDoctor(Integer recordId) throws DataRepositoryException {
+        Optional<PatientRecord> deletingPatientRecord = patientRecordRepository.findById(recordId);
+
+        if (deletingPatientRecord.isEmpty()) {
+            throw new UnavailableRecordTimeException();
+        }
+        if (!patientRecordRepository.delete(recordId)) {
+            throw new UnavailableRecordTimeException();
+        }
+
+        Integer doctorId = deletingPatientRecord.get().getDoctorId();
         Doctor doctorForRecord = doctorRepository.findById(doctorId).orElseThrow(UnavailableRecordTimeException::new);
 
         return patientRecordRepository.getPatientRecordMapper()
-                .mapPatientRecordToAddedPatientRecordDto(recordingPatient, doctorForRecord.getFullName());
-    }
-
-    public RemovedPatientRecordDto removePatientRecordToTheDoctor(Integer doctorId, String patientId,
-                                                                  LocalDateTime appointmentDateTime) {
-        return null;
+                .mapPatientRecordToPatientRecordResultDto(deletingPatientRecord.get(), doctorForRecord.getFullName());
     }
 
 
-    private LocalDateTime getNextAvailableTime(LocalDateTime time) {
-        if (time.toLocalTime().isAfter(LAST_DAY_TIME_FOR_RECORDING)) {
-            return LocalDateTime.of(time.toLocalDate().plusDays(1), FIRST_DAY_TIME_FOR_RECORDING);
+    private LocalDateTime getNextAvailableDateTime(LocalDateTime dateTime) {
+        LocalDate date = dateTime.toLocalDate();
+        LocalTime time = dateTime.toLocalTime();
+
+        if (date.getDayOfWeek().equals(DayOfWeek.SUNDAY) || time.isAfter(LAST_DAY_TIME_FOR_RECORDING)) {
+            return LocalDateTime.of(date.plusDays(1), FIRST_DAY_TIME_FOR_RECORDING);
         }
-        if (time.toLocalTime().isBefore(FIRST_DAY_TIME_FOR_RECORDING)) {
-            return LocalDateTime.of(time.toLocalDate(), LAST_DAY_TIME_FOR_RECORDING);
+        if (time.isBefore(FIRST_DAY_TIME_FOR_RECORDING)) {
+            return LocalDateTime.of(date, FIRST_DAY_TIME_FOR_RECORDING);
         }
-        if (time.getMinute() < 30) {
-            return time.withMinute(30);
+        if (time.getMinute() < SESSION_TIME_IN_MINUTES) {
+            return dateTime.withMinute(SESSION_TIME_IN_MINUTES);
         } else {
-            return time.plusHours(1).withMinute(0);
+            return dateTime.plusHours(1).withMinute(0);
         }
     }
 }

@@ -7,8 +7,8 @@ import data.domain.mappers.PatientRecordMapper;
 import data.domain.repositories.DoctorRepository;
 import data.domain.repositories.PatientRecordRepository;
 import data.domain.repositories.exceptions.DataRepositoryException;
-import data.dto.AddedPatientRecordDto;
 import data.dto.PatientProfileDto;
+import data.dto.PatientRecordResultDto;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -35,20 +35,20 @@ public class PatientRecordServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Integer doctorId = Integer.valueOf(req.getParameter("doctorId"));
         String dateTime = req.getParameter("dateTime");
-
         PatientProfileDto patientProfile = (PatientProfileDto) req.getSession().getAttribute("patient");
 
         try {
-            AddedPatientRecordDto patientRecord = patientRecordService.makePatientRecordToTheDoctor(doctorId,
-                    patientProfile.getInsurancePolicyNumber(), LocalDateTime.parse(dateTime));
+            PatientRecordResultDto patientRecord = patientRecordService.makePatientRecordToTheDoctor(doctorId,
+                    patientProfile.insurancePolicyNumber(), LocalDateTime.parse(dateTime));
+
             req.setAttribute("patientRecord", patientRecord);
             RequestDispatcher dispatcher = req.getRequestDispatcher("record.jsp");
             dispatcher.forward(req, resp);
         } catch (UnavailableRecordTimeException e) {
-            req.setAttribute("errorMessage", "");
+            req.setAttribute("errorMessage", "На выбранную дату уже нельзя записаться."
+                    + "Пожалуйста, запишитесь на другое время или к другому врачу.");
         } catch (DataRepositoryException e) {
-            RequestDispatcher dispatcher = req.getRequestDispatcher("server_error.jsp");
-            dispatcher.forward(req, resp);
+            resp.sendRedirect(req.getContextPath() + "/server_error");
         }
     }
 

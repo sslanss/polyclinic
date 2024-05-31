@@ -1,7 +1,6 @@
 package services;
 
 import data.domain.models.Patient;
-import data.domain.repositories.AppointmentRepository;
 import data.domain.repositories.PatientRepository;
 import data.domain.repositories.exceptions.DataRepositoryException;
 import data.dto.ErrorFieldsDto;
@@ -21,14 +20,12 @@ public class PatientService {
     private final PatientRepository patientRepository;
     private final PasswordHasher passwordHasher;
     private final PatientValidator patientValidator;
-    private final AppointmentRepository appointmentRepository;
 
     public PatientService(PatientRepository patientRepository, PasswordHasher passwordHasher,
-                          PatientValidator patientValidator, AppointmentRepository appointmentRepository) {
+                          PatientValidator patientValidator) {
         this.patientRepository = patientRepository;
         this.passwordHasher = passwordHasher;
         this.patientValidator = patientValidator;
-        this.appointmentRepository = appointmentRepository;
     }
 
     public PatientProfileDto registerPatient(String insurancePolicyNumber, String fullName, String dateOfBirth,

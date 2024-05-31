@@ -44,6 +44,14 @@ public class PatientRecordRepository {
               AND date_time = ?
             """;
 
+    private static final String FIND_BY_PATIENT_ID_AND_TIME_INTERVAL_TEMPLATE = """
+            SELECT PR.record_id, PR.doctor_id, PR.patient_id, PR.date_time, PR.appointment_type, D.full_name AS
+            doctor_full_name
+            FROM patient_records PR
+                     JOIN doctors D ON PR.doctor_id = D.doctor_id
+            WHERE PR.patient_id = ? AND PR.date_time > ?
+            """;
+
     private static final String ADD_TEMPLATE = """
             INSERT INTO patient_records(doctor_id, patient_id, date_time, appointment_type)
             VALUES (?, ?, ?, ?::appointment_type)
@@ -52,6 +60,12 @@ public class PatientRecordRepository {
     private static final String DELETE_TEMPLATE = """
             DELETE FROM patient_records
             WHERE record_id = ?
+            """;
+
+    private static final String DELETE_BY_DOCTOR_PATIENT_AND_DATE_TIME_TEMPLATE = """
+            DELETE FROM patient_records
+            WHERE doctor_id = ? AND patient_id = ?
+              AND date_time = ?
             """;
 
     private static final String UPDATE_DATE_TIME_TEMPLATE = """
@@ -126,6 +140,26 @@ public class PatientRecordRepository {
 
             while (resultSet.next()) {
                 records.add(patientRecordMapper.mapPatientRecordFromDatabase(resultSet));
+            }
+        } catch (SQLException e) {
+            throw new DataRepositoryException();
+        }
+        return records;
+    }
+
+
+    public List<PatientRecord> findAllByPatientIdAndTimeInterval(String patientId, LocalDateTime since)
+            throws DataRepositoryException {
+        List<PatientRecord> records = new ArrayList<>();
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                FIND_BY_PATIENT_ID_AND_TIME_INTERVAL_TEMPLATE)) {
+            preparedStatement.setString(1, patientId);
+            preparedStatement.setObject(2, since);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                records.add(patientRecordMapper.mapPatientRecordWithDoctorFullNameFromDatabase(resultSet));
             }
         } catch (SQLException e) {
             throw new DataRepositoryException();

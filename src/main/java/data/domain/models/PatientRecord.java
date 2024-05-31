@@ -15,6 +15,16 @@ public class PatientRecord {
     private String patientId;
     private LocalDateTime dateTime;
     private AppointmentType appointmentType;
+    private String doctorFullName;
+
+    public PatientRecord(Integer recordId, Integer doctorId, String patientId, LocalDateTime dateTime,
+                         AppointmentType appointmentType) {
+        this.recordId = recordId;
+        this.doctorId = doctorId;
+        this.patientId = patientId;
+        this.dateTime = dateTime;
+        this.appointmentType = appointmentType;
+    }
 
     public PatientRecord(Integer doctorId, String patientId, LocalDateTime dateTime,
                          AppointmentType appointmentType) {

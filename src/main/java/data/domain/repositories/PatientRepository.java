@@ -4,7 +4,6 @@ import data.database.ConnectionFactory;
 import data.domain.mappers.PatientMapper;
 import data.domain.models.Patient;
 import data.domain.repositories.exceptions.DataRepositoryException;
-import lombok.Getter;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -14,6 +13,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import lombok.Getter;
 
 public class PatientRepository {
     @Getter
@@ -28,12 +28,6 @@ public class PatientRepository {
             FROM patients
             WHERE insurance_policy_number = ?
             """;
-    private static final String FIND_BY_NUMBER_AND_PASSWORD_TEMPLATE = """
-            SELECT insurance_policy_number, full_name, date_of_birth, gender, phone_number, address, password
-            FROM patients
-            WHERE insurance_policy_number = ? AND password = ?
-            """;
-
     private static final String ADD_TEMPLATE = """
             INSERT INTO patients(insurance_policy_number, full_name, date_of_birth, gender, phone_number, address,
             password)
@@ -72,23 +66,6 @@ public class PatientRepository {
     public Optional<Patient> findByPolicyNumber(String insurancePolicyNumber) throws DataRepositoryException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_NUMBER_TEMPLATE)) {
             preparedStatement.setString(1, insurancePolicyNumber);
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.next()) {
-                return Optional.of(patientMapper.mapPatientFromDatabase(resultSet));
-            } else {
-                return Optional.empty();
-            }
-        } catch (SQLException e) {
-            throw new DataRepositoryException();
-        }
-    }
-
-    public Optional<Patient> findByPolicyNumberAndPassword(String insurancePolicyNumber, String password)
-            throws DataRepositoryException {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_NUMBER_AND_PASSWORD_TEMPLATE)) {
-            preparedStatement.setString(1, insurancePolicyNumber);
-            preparedStatement.setString(2, password);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {

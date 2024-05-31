@@ -2,7 +2,6 @@ package servlets.user;
 
 import data.domain.mappers.GenderMapper;
 import data.domain.mappers.PatientMapper;
-import data.domain.repositories.AppointmentRepository;
 import data.domain.repositories.PatientRepository;
 import data.domain.repositories.exceptions.DataRepositoryException;
 import data.dto.PatientProfileDto;
@@ -26,7 +25,7 @@ public class LoginServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         patientService = new PatientService(new PatientRepository(new PatientMapper(new GenderMapper())),
-                new PasswordHasher(), new PatientValidator(), new AppointmentRepository());
+                new PasswordHasher(), new PatientValidator());
     }
 
     @Override
@@ -43,10 +42,9 @@ public class LoginServlet extends HttpServlet {
         try {
             PatientProfileDto patientProfile = patientService.loginPatient(insurancePolicyNumber, password);
             req.getSession().setAttribute("patient", patientProfile);
-            forwardToPageWithAnAttribute(req, resp, "patient_profile.jsp", "patient", patientProfile);
+            forwardToPageWithAnAttribute(req, resp, "successful_authorization.jsp", "patient", patientProfile);
         } catch (DataRepositoryException e) {
-            RequestDispatcher dispatcher = req.getRequestDispatcher("server_error.jsp");
-            dispatcher.forward(req, resp);
+            resp.sendRedirect(req.getContextPath() + "/server_error");
         } catch (PatientHaveNotRegisteredYet e) {
             forwardToPageWithAnAttribute(req, resp, "registration.jsp", "errorMessage",
                     "Вы еще не зарегистрированы. Пожалуйста, зарегистрируйтесь.");
@@ -64,7 +62,5 @@ public class LoginServlet extends HttpServlet {
         }
         RequestDispatcher dispatcher = req.getRequestDispatcher(page);
         dispatcher.forward(req, resp);
-
-        //resp.sendRedirect(req.getContextPath() + page);
     }
 }

@@ -14,23 +14,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import services.DoctorsService;
+import services.DoctorService;
 
 @WebServlet("/specialities")
 public class SpecialitiesServlet extends HttpServlet {
 
-    private DoctorsService doctorsService;
+    private DoctorService doctorService;
 
     @Override
     public void init() throws ServletException {
-        doctorsService = new DoctorsService(new DoctorRepository(new DoctorMapper(new GenderMapper())),
+        doctorService = new DoctorService(new DoctorRepository(new DoctorMapper(new GenderMapper())),
                 new SpecialityRepository(new SpecialityMapper()));
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-        List<SpecialityDto> specialitiesList = doctorsService.getAllSpecialities();
+        List<SpecialityDto> specialitiesList = doctorService.getAllSpecialities();
         req.setAttribute("specialitiesList", specialitiesList);
 
         RequestDispatcher dispatcher = req.getRequestDispatcher("specialities.jsp");

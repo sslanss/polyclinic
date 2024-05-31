@@ -9,13 +9,14 @@ import data.dto.DoctorListItemDto;
 import data.dto.DoctorProfileDto;
 import data.dto.SpecialityDto;
 import java.util.List;
+import services.exceptions.DoctorUnavailableException;
 
-public class DoctorsService {
+public class DoctorService {
     private final DoctorRepository doctorRepository;
 
     private final SpecialityRepository specialityRepository;
 
-    public DoctorsService(DoctorRepository doctorRepository, SpecialityRepository specialityRepository) {
+    public DoctorService(DoctorRepository doctorRepository, SpecialityRepository specialityRepository) {
         this.doctorRepository = doctorRepository;
         this.specialityRepository = specialityRepository;
     }
@@ -23,12 +24,6 @@ public class DoctorsService {
     public List<SpecialityDto> getAllSpecialities() throws DataRepositoryException {
         return specialityRepository.findAll().stream()
                 .map(speciality -> specialityRepository.getMapper().mapSpecialityToSpecialityDto(speciality))
-                .toList();
-    }
-
-    public List<DoctorListItemDto> getAllDoctorItems() throws DataRepositoryException {
-        return doctorRepository.findAll().stream()
-                .map(doctor -> doctorRepository.getMapper().mapDoctorToDoctorListItemDto(doctor))
                 .toList();
     }
 
@@ -40,10 +35,10 @@ public class DoctorsService {
 
     public DoctorProfileDto getById(Integer doctorId) throws DataRepositoryException {
         Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow();
+                .orElseThrow(DoctorUnavailableException::new);
 
         Speciality speciality = specialityRepository.findById(doctor.getSpecialityId())
-                .orElseThrow();
+                .orElseThrow(DoctorUnavailableException::new);
         return doctorRepository.getMapper().mapDoctorToDoctorProfileDto(doctor, speciality);
     }
 }

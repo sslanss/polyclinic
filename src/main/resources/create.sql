@@ -38,7 +38,7 @@ CREATE TABLE patient_records (
                          record_id SERIAL PRIMARY KEY,
                          doctor_id INT,
                          patient_id VARCHAR(16),
-                         date_time TIMESTAMP WITH TIME ZONE NOT NULL,
+                         date_time TIMESTAMP NOT NULL,
                          appointment_type appointment_type,
 
                          FOREIGN KEY (doctor_id) REFERENCES doctors (doctor_id) ON DELETE CASCADE,

@@ -9,6 +9,39 @@
 <html>
 <head>
     <title>БУЗ ВО «Воронежская городская поликлиника N8»</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1, h2 {
+            color: #4CAF50;
+        }
+        p, ul {
+            font-size: 16px;
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul li {
+            background-color: #f2f2f2;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .contact-info {
+            background-color: #c6d5c7;
+            padding: 15px;
+            border: 1px solid #b8d5bb;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 <h1>Добро пожаловать в Городскую поликлинику №8.</h1>
@@ -49,8 +82,10 @@
 </ul>
 
 <h2>Контактная информация:</h2>
-<p>Адрес: ул. Примерная, д. 123, г. Примерный</p>
-<p>Телефон: +7 (123) 456-78-90</p>
-<p>Email: info@polyclinic8.ru</p>
+<div class="contact-info">
+    <p>Адрес: ул. Примерная, д. 123, г. Примерный</p>
+    <p>Телефон: +7 (123) 456-78-90</p>
+    <p>Email: info@polyclinic8.ru</p>
+</div>
 </body>
 </html>
