@@ -60,6 +60,10 @@
             margin-top: 10px;
             font-size: 14px;
         }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+        }
     </style>
 </head>
 <body>
@@ -80,7 +84,10 @@
         <label for="password">Пароль:</label>
         <input type="password" id="password" name="password" required>
 
-        <button class="button" type="submit">Войти</button>
+        <div class="button-container">
+            <button class="button" type="submit">Войти</button>
+            <a class="button" href="<%= request.getContextPath() %>/registration">Зарегистрироваться</a>
+        </div>
     </form>
 </div>
 </body>

@@ -34,27 +34,13 @@ public class PatientService {
         Optional<Patient> findingPatient = patientRepository.findByPolicyNumber(insurancePolicyNumber);
 
         if (findingPatient.isPresent()) {
-            Patient onsiteVisitedPatient = findingPatient.get();
-            if (isPatientAnUser(onsiteVisitedPatient)) {
-                throw new PatientHaveAlreadyRegistered();
-            }
-
-            patientRepository.updatePassword(insurancePolicyNumber, password);
-            return patientRepository.getPatientMapper().mapPatientToPatientProfileDto(onsiteVisitedPatient);
+            return registerOnsiteVisitedPatient(findingPatient.get(), insurancePolicyNumber, password);
         } else {
             Patient registeringPatient = new Patient(insurancePolicyNumber, fullName, LocalDate.parse(dateOfBirth),
                     patientRepository.getPatientMapper().getGenderMapper().mapGenderFromUserForm(gender),
                     phoneNumber, address, password);
 
-            List<ErrorField> errors = patientValidator.validate(registeringPatient);
-            if (!errors.isEmpty()) {
-                throw new InvalidFieldsException(new ErrorFieldsDto(errors));
-            }
-
-            registeringPatient.setPassword(passwordHasher.hash(password));
-            patientRepository.add(registeringPatient);
-
-            return patientRepository.getPatientMapper().mapPatientToPatientProfileDto(registeringPatient);
+            return registerNewPatient(registeringPatient, password);
         }
     }
 
@@ -77,4 +63,27 @@ public class PatientService {
     private boolean isPatientAnUser(Patient patient) {
         return patient.getPassword() != null;
     }
+
+    private PatientProfileDto registerOnsiteVisitedPatient(Patient patient, String insurancePolicyNumber,
+                                                           String password) throws PatientHaveAlreadyRegistered {
+        if (isPatientAnUser(patient)) {
+            throw new PatientHaveAlreadyRegistered();
+        }
+
+        patientRepository.updatePassword(insurancePolicyNumber, password);
+        return patientRepository.getPatientMapper().mapPatientToPatientProfileDto(patient);
+    }
+
+    private PatientProfileDto registerNewPatient(Patient patient, String password) throws InvalidFieldsException {
+        List<ErrorField> errors = patientValidator.validate(patient);
+        if (!errors.isEmpty()) {
+            throw new InvalidFieldsException(new ErrorFieldsDto(errors));
+        }
+
+        patient.setPassword(passwordHasher.hash(password));
+        patientRepository.add(patient);
+
+        return patientRepository.getPatientMapper().mapPatientToPatientProfileDto(patient);
+    }
+
 }

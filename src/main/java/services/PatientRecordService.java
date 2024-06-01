@@ -45,16 +45,10 @@ public class PatientRecordService {
 
         List<DoctorAvailableTimeDto> freeRecordsByTimestamp = new ArrayList<>();
         while (firstAvailableTime.isBefore(lastAvailableTime)) {
-
             if (!busyDateTimes.contains(firstAvailableTime)) {
                 freeRecordsByTimestamp.add(new DoctorAvailableTimeDto(firstAvailableTime));
             }
-            if (firstAvailableTime.toLocalTime().isBefore(LAST_DAY_TIME_FOR_RECORDING)) {
-                firstAvailableTime = firstAvailableTime.plusMinutes(SESSION_TIME_IN_MINUTES);
-            } else {
-                firstAvailableTime = LocalDateTime.of(firstAvailableTime.toLocalDate().plusDays(1),
-                        FIRST_DAY_TIME_FOR_RECORDING);
-            }
+            firstAvailableTime = getNextAvailableDateTime(firstAvailableTime);
         }
         return freeRecordsByTimestamp;
     }
@@ -107,11 +101,16 @@ public class PatientRecordService {
     }
 
 
-    private LocalDateTime getNextAvailableDateTime(LocalDateTime dateTime) {
+    public LocalDateTime getNextAvailableDateTime(LocalDateTime dateTime) {
         LocalDate date = dateTime.toLocalDate();
         LocalTime time = dateTime.toLocalTime();
 
-        if (date.getDayOfWeek().equals(DayOfWeek.SUNDAY) || time.isAfter(LAST_DAY_TIME_FOR_RECORDING)) {
+        if (date.getDayOfWeek().equals(DayOfWeek.SATURDAY) && (time.equals(LAST_DAY_TIME_FOR_RECORDING)
+              ||  time.isAfter(LAST_DAY_TIME_FOR_RECORDING))) {
+            return LocalDateTime.of(date.plusDays(2), FIRST_DAY_TIME_FOR_RECORDING);
+        }
+        if (date.getDayOfWeek().equals(DayOfWeek.SUNDAY)
+             ||  time.isAfter(LAST_DAY_TIME_FOR_RECORDING) || time.equals(LAST_DAY_TIME_FOR_RECORDING)) {
             return LocalDateTime.of(date.plusDays(1), FIRST_DAY_TIME_FOR_RECORDING);
         }
         if (time.isBefore(FIRST_DAY_TIME_FOR_RECORDING)) {

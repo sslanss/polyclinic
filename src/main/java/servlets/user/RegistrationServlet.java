@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import services.PatientService;
 import services.exceptions.InvalidFieldsException;
+import services.exceptions.PatientHaveAlreadyRegistered;
 import utils.password.PasswordHasher;
 import utils.validation.validators.model_validators.PatientValidator;
 
@@ -54,8 +55,13 @@ public class RegistrationServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/server_error");
         } catch (InvalidFieldsException e) {
             req.setAttribute("errorMessage", "Вы допустили ошибки в заполнении формы. "
-                  +  "Пожалуйста, заполните информацию верно.");
+                    + "Пожалуйста, заполните информацию верно.");
             req.setAttribute("errorFields", e.getErrorFields());
+            RequestDispatcher dispatcher = req.getRequestDispatcher("registration.jsp");
+            dispatcher.forward(req, resp);
+        } catch (PatientHaveAlreadyRegistered e) {
+            req.setAttribute("errorMessage", "Для выбранного вами ОМС уже существует аккаунт."
+                    + "Пожалуйста, войдите в систему, если аккаунт ваш.");
             RequestDispatcher dispatcher = req.getRequestDispatcher("registration.jsp");
             dispatcher.forward(req, resp);
         }

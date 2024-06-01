@@ -11,7 +11,7 @@ import utils.validation.validators.ErrorField;
 import utils.validation.validators.FieldValidator;
 
 public class PatientValidator {
-    private final List<ErrorField> errorFields;
+    private List<ErrorField> errorFields;
 
     private final static FieldValidator<String> INSURANCE_POLICY_NUMBER_VALIDATOR = new FieldValidator<String>()
             .add(new NotNullConstraint<>())
@@ -32,6 +32,7 @@ public class PatientValidator {
     }
 
     public List<ErrorField> validate(Patient patient) {
+        errorFields = new ArrayList<>();
         if (!INSURANCE_POLICY_NUMBER_VALIDATOR.validate(patient.getInsurancePolicyNumber())) {
             errorFields.add(new ErrorField("Номер страхового полиса (ОМС)", "Непустое значение. "
                   +  "16 числовых символов."));
