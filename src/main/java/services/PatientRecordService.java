@@ -24,7 +24,7 @@ public class PatientRecordService {
     private final DoctorRepository doctorRepository;
     private static final LocalTime FIRST_DAY_TIME_FOR_RECORDING = LocalTime.of(8, 0, 0);
     private static final LocalTime LAST_DAY_TIME_FOR_RECORDING = LocalTime.of(20, 0, 0);
-    private static final int SESSION_TIME_IN_MINUTES = 30;
+    private static final int SESSION_DURATION_IN_MINUTES = 30;
 
     public PatientRecordService(PatientRecordRepository patientRecordRepository, DoctorRepository doctorRepository) {
         this.patientRecordRepository = patientRecordRepository;
@@ -101,7 +101,7 @@ public class PatientRecordService {
     }
 
 
-    public LocalDateTime getNextAvailableDateTime(LocalDateTime dateTime) {
+    private LocalDateTime getNextAvailableDateTime(LocalDateTime dateTime) {
         LocalDate date = dateTime.toLocalDate();
         LocalTime time = dateTime.toLocalTime();
 
@@ -116,8 +116,8 @@ public class PatientRecordService {
         if (time.isBefore(FIRST_DAY_TIME_FOR_RECORDING)) {
             return LocalDateTime.of(date, FIRST_DAY_TIME_FOR_RECORDING);
         }
-        if (time.getMinute() < SESSION_TIME_IN_MINUTES) {
-            return dateTime.withMinute(SESSION_TIME_IN_MINUTES);
+        if (time.getMinute() < SESSION_DURATION_IN_MINUTES) {
+            return dateTime.withMinute(SESSION_DURATION_IN_MINUTES);
         } else {
             return dateTime.plusHours(1).withMinute(0);
         }

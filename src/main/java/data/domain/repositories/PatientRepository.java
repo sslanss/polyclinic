@@ -99,9 +99,9 @@ public class PatientRepository {
             }
     }
 
-    public boolean delete(String insurancePolicyNumber) throws DataRepositoryException {
+    public boolean delete(Patient patient) throws DataRepositoryException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(DELETE_TEMPLATE)) {
-            preparedStatement.setString(1, insurancePolicyNumber);
+            preparedStatement.setString(1, patient.getInsurancePolicyNumber());
 
             return preparedStatement.executeUpdate() == 1;
         } catch (SQLException e) {
@@ -109,10 +109,10 @@ public class PatientRepository {
         }
     }
 
-    public void updatePassword(String insurancePolicyNumber, String password) throws DataRepositoryException {
+    public void updatePassword(Patient patient) throws DataRepositoryException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_PASSWORD_TEMPLATE)) {
-            preparedStatement.setString(1, password);
-            preparedStatement.setString(2, insurancePolicyNumber);
+            preparedStatement.setString(1, patient.getPassword());
+            preparedStatement.setString(2, patient.getInsurancePolicyNumber());
 
             preparedStatement.executeUpdate();
         } catch (SQLException e) {

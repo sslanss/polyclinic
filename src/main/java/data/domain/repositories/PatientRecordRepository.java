@@ -49,7 +49,7 @@ public class PatientRecordRepository {
             doctor_full_name
             FROM patient_records PR
                      JOIN doctors D ON PR.doctor_id = D.doctor_id
-            WHERE PR.patient_id = ? AND PR.date_time > ?
+            WHERE PR.patient_id = ? AND PR.date_time >= ?
             """;
 
     private static final String ADD_TEMPLATE = """
@@ -60,12 +60,6 @@ public class PatientRecordRepository {
     private static final String DELETE_TEMPLATE = """
             DELETE FROM patient_records
             WHERE record_id = ?
-            """;
-
-    private static final String DELETE_BY_DOCTOR_PATIENT_AND_DATE_TIME_TEMPLATE = """
-            DELETE FROM patient_records
-            WHERE doctor_id = ? AND patient_id = ?
-              AND date_time = ?
             """;
 
     private static final String UPDATE_DATE_TIME_TEMPLATE = """
@@ -190,12 +184,12 @@ public class PatientRecordRepository {
         }
     }
 
-    public void update(PatientRecord patientRecord) throws DataRepositoryException {
+    public boolean update(PatientRecord patientRecord) throws DataRepositoryException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_DATE_TIME_TEMPLATE)) {
             preparedStatement.setObject(1, patientRecord.getDateTime());
             preparedStatement.setInt(2, patientRecord.getRecordId());
 
-            preparedStatement.executeUpdate();
+            return preparedStatement.executeUpdate() == 1;
         } catch (SQLException e) {
             throw new DataRepositoryException();
         }

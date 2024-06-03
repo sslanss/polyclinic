@@ -12,7 +12,8 @@ CREATE TABLE doctors (
                          gender gender,
                          phone_number VARCHAR(10),
 
-                         FOREIGN KEY (speciality_id) REFERENCES specialities (speciality_id) ON DELETE CASCADE
+                         FOREIGN KEY (speciality_id) REFERENCES specialities (speciality_id) ON DELETE CASCADE,
+                         UNIQUE(speciality_id, full_name)
 );
 
 CREATE TABLE patients (
@@ -42,7 +43,8 @@ CREATE TABLE patient_records (
                          appointment_type appointment_type,
 
                          FOREIGN KEY (doctor_id) REFERENCES doctors (doctor_id) ON DELETE CASCADE,
-                         FOREIGN KEY (patient_id) REFERENCES patients (insurance_policy_number) ON DELETE CASCADE
+                         FOREIGN KEY (patient_id) REFERENCES patients (insurance_policy_number) ON DELETE CASCADE,
+                         UNIQUE(doctor_id, date_time)
 );
 
 CREATE TABLE diagnoses (

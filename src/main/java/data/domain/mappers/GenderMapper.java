@@ -15,16 +15,19 @@ public class GenderMapper {
     }
 
     public Gender mapGenderFromUserForm(String gender) {
-        switch (gender) {
-            case "male" -> {
-                return Gender.MALE;
-            }
-            case "female" -> {
-                return Gender.FEMALE;
-            }
-            default -> {
-                return null;
+        if (gender != null) {
+            switch (gender) {
+                case "male" -> {
+                    return Gender.MALE;
+                }
+                case "female" -> {
+                    return Gender.FEMALE;
+                }
+                default -> {
+                    return null;
+                }
             }
         }
+        return  null;
     }
 }

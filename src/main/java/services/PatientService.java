@@ -70,7 +70,8 @@ public class PatientService {
             throw new PatientHaveAlreadyRegistered();
         }
 
-        patientRepository.updatePassword(insurancePolicyNumber, password);
+        patient.setPassword(passwordHasher.hash(password));
+        patientRepository.updatePassword(patient);
         return patientRepository.getPatientMapper().mapPatientToPatientProfileDto(patient);
     }
 
